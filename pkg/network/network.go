@@ -49,6 +49,7 @@ type Network struct {
 	handlers   map[string]MessageHandler
 	handlersMu sync.RWMutex
 	logger     *logrus.Logger
+	discovery  *PeerDiscovery
 }
 
 // MessageHandler handles incoming messages
@@ -80,12 +81,21 @@ func NewNetwork(port int, logger *logrus.Logger) (*Network, error) {
 	// Set stream handler
 	h.SetStreamHandler(protocol.ID(ProtocolID), n.handleStream)
 
+	// Initialize peer discovery
+	n.discovery = NewPeerDiscovery(n, false, logger)
+
 	return n, nil
 }
 
 // Start starts the network
 func (n *Network) Start() error {
 	n.logger.Infof("Network started on %s", n.host.Addrs())
+
+	// Start peer discovery
+	if err := n.discovery.Start(); err != nil {
+		return fmt.Errorf("failed to start peer discovery: %v", err)
+	}
+
 	return nil
 }
 
@@ -289,4 +299,64 @@ func (n *Network) RequestBlocks(peerID string, fromHeight int64) error {
 	return n.SendToPeer(peerID, MsgTypeGetBlocks, map[string]interface{}{
 		"from_height": fromHeight,
 	})
+}
+
+// ConnectToPeerByMultiaddr connects to a peer using multiaddr
+func (n *Network) ConnectToPeerByMultiaddr(maddr multiaddr.Multiaddr) error {
+	// Extract peer info from multiaddr
+	info, err := peer.AddrInfoFromP2pAddr(maddr)
+	if err != nil {
+		return fmt.Errorf("failed to get peer info: %v", err)
+	}
+
+	// Connect to peer
+	ctx, cancel := context.WithTimeout(n.ctx, 30*time.Second)
+	defer cancel()
+
+	err = n.host.Connect(ctx, *info)
+	if err != nil {
+		return fmt.Errorf("failed to connect to peer: %v", err)
+	}
+
+	n.logger.Infof("Connected to peer %s", info.ID)
+	return nil
+}
+
+// IsConnected checks if we're connected to a specific address
+func (n *Network) IsConnected(address string) bool {
+	// Simple check - in a real implementation, you'd parse the address
+	// and check against connected peers
+	return false
+}
+
+// GetConnectedPeers returns list of connected peer IDs
+func (n *Network) GetConnectedPeers() []peer.ID {
+	n.peersMu.RLock()
+	defer n.peersMu.RUnlock()
+
+	var peers []peer.ID
+	for peerID := range n.peers {
+		peers = append(peers, peerID)
+	}
+	return peers
+}
+
+
+
+// EnableBootstrapMode enables bootstrap mode for this node
+func (n *Network) EnableBootstrapMode() {
+	if n.discovery != nil {
+		n.discovery.isBootstrap = true
+		n.logger.Info("Bootstrap mode enabled - this node will help other nodes discover the network")
+	}
+}
+
+// GetDiscoveryStats returns peer discovery statistics
+func (n *Network) GetDiscoveryStats() map[string]interface{} {
+	if n.discovery != nil {
+		return n.discovery.GetStats()
+	}
+	return map[string]interface{}{
+		"discovery_enabled": false,
+	}
 }
