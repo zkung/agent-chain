@@ -35,3 +35,19 @@ bash scripts/discover-nodes-fixed.sh quick
 
 
 Get-Process | Where-Object {$_.ProcessName -like "*node*" -or $_.ProcessName -like "*agent*"}
+
+
+# 启动P2P网络 (推荐)
+bash scripts/bootstrap-p2p-network.sh start
+
+# 检查网络状态
+bash scripts/check-p2p-status-updated.sh
+
+# 测试P2P发现
+bash scripts/check-p2p-status-updated.sh test
+
+# 实时监控
+bash scripts/check-p2p-status-updated.sh monitor
+
+# 停止网络
+bash scripts/bootstrap-p2p-network.sh stop

@@ -1,0 +1,7 @@
+﻿data_dir: "E:/agent-chain-E/data/node3"
+p2p_port: 9003
+rpc_port: 8547
+is_validator: true
+boot_nodes:
+  - "/ip4/127.0.0.1/tcp/9001/p2p/12D3KooWCWQ7FRpwMPybKUka3HnSFNSZM5NpUzZJFy5L12ayput1"
+  - "/ip4/127.0.0.1/tcp/9002"
