@@ -172,29 +172,29 @@ function Start-Nodes {
     
     $nodeBinary = Join-Path $BinDir "node.exe"
     
-    # Start node 1
+    # Start node 1 (Bootstrap node with P2P discovery)
     Write-Log "Starting node 1 (P2P: $NODE1_P2P_PORT, RPC: $NODE1_RPC_PORT)..."
     $node1LogPath = Join-Path $LogsDir "node1.log"
     $node1ErrPath = Join-Path $LogsDir "node1.err"
-    $proc1 = Start-Process -FilePath $nodeBinary -ArgumentList "--config", "configs\node1.yaml" -RedirectStandardOutput $node1LogPath -RedirectStandardError $node1ErrPath -PassThru -NoNewWindow
+    $proc1 = Start-Process -FilePath $nodeBinary -ArgumentList "--config", "configs\node1.yaml", "--bootstrap", "--discovery" -RedirectStandardOutput $node1LogPath -RedirectStandardError $node1ErrPath -PassThru -NoNewWindow
     $script:NodeProcesses += $proc1
 
     Start-Sleep -Seconds 3
 
-    # Start node 2
+    # Start node 2 (Regular node with P2P discovery)
     Write-Log "Starting node 2 (P2P: $NODE2_P2P_PORT, RPC: $NODE2_RPC_PORT)..."
     $node2LogPath = Join-Path $LogsDir "node2.log"
     $node2ErrPath = Join-Path $LogsDir "node2.err"
-    $proc2 = Start-Process -FilePath $nodeBinary -ArgumentList "--config", "configs\node2.yaml" -RedirectStandardOutput $node2LogPath -RedirectStandardError $node2ErrPath -PassThru -NoNewWindow
+    $proc2 = Start-Process -FilePath $nodeBinary -ArgumentList "--config", "configs\node2.yaml", "--discovery" -RedirectStandardOutput $node2LogPath -RedirectStandardError $node2ErrPath -PassThru -NoNewWindow
     $script:NodeProcesses += $proc2
 
     Start-Sleep -Seconds 3
 
-    # Start node 3
+    # Start node 3 (Regular node with P2P discovery)
     Write-Log "Starting node 3 (P2P: $NODE3_P2P_PORT, RPC: $NODE3_RPC_PORT)..."
     $node3LogPath = Join-Path $LogsDir "node3.log"
     $node3ErrPath = Join-Path $LogsDir "node3.err"
-    $proc3 = Start-Process -FilePath $nodeBinary -ArgumentList "--config", "configs\node3.yaml" -RedirectStandardOutput $node3LogPath -RedirectStandardError $node3ErrPath -PassThru -NoNewWindow
+    $proc3 = Start-Process -FilePath $nodeBinary -ArgumentList "--config", "configs\node3.yaml", "--discovery" -RedirectStandardOutput $node3LogPath -RedirectStandardError $node3ErrPath -PassThru -NoNewWindow
     $script:NodeProcesses += $proc3
     
     Start-Sleep -Seconds 5
