@@ -35,16 +35,16 @@ func (a Address) Bytes() []byte {
 
 // ProblemSpec defines a task specification
 type ProblemSpec struct {
-	ID                 string            `json:"id"`
-	Title              string            `json:"title"`
-	Description        string            `json:"description"`
-	InputFormat        map[string]string `json:"input_format"`
-	OutputFormat       map[string]string `json:"output_format"`
-	AcceptanceCriteria []string          `json:"acceptance_criteria"`
-	TimeLimitMs        int64             `json:"time_limit_ms"`
-	MemoryLimitMb      int64             `json:"memory_limit_mb"`
-	Reward             int64             `json:"reward"`
-	TestSuite          []TestCase        `json:"test_suite"`
+	ID              string            `json:"id"`
+	Title           string            `json:"title"`
+	Description     string            `json:"description"`
+	InputFormat     map[string]string `json:"input_format"`
+	OutputFormat    map[string]string `json:"output_format"`
+	AcceptanceCriteria []string       `json:"acceptance_criteria"`
+	TimeLimitMs     int64             `json:"time_limit_ms"`
+	MemoryLimitMb   int64             `json:"memory_limit_mb"`
+	Reward          int64             `json:"reward"`
+	TestSuite       []TestCase        `json:"test_suite"`
 }
 
 // TestCase represents a single test case
@@ -56,14 +56,14 @@ type TestCase struct {
 
 // PatchSet represents a code submission
 type PatchSet struct {
-	ID        string            `json:"id"`
-	ProblemID string            `json:"problem_id"`
-	Author    Address           `json:"author"`
-	Code      string            `json:"code"`
-	Language  string            `json:"language"`
-	Files     map[string]string `json:"files"`
-	Timestamp int64             `json:"timestamp"`
-	Signature []byte            `json:"signature"`
+	ID          string            `json:"id"`
+	ProblemID   string            `json:"problem_id"`
+	Author      Address           `json:"author"`
+	Code        string            `json:"code"`
+	Language    string            `json:"language"`
+	Files       map[string]string `json:"files"`
+	Timestamp   int64             `json:"timestamp"`
+	Signature   []byte            `json:"signature"`
 }
 
 func (ps *PatchSet) Hash() Hash {
@@ -101,20 +101,20 @@ type Block struct {
 
 // BlockHeader contains block metadata
 type BlockHeader struct {
-	Height     int64   `json:"height"`
-	PrevHash   Hash    `json:"prev_hash"`
-	MerkleRoot Hash    `json:"merkle_root"`
-	Timestamp  int64   `json:"timestamp"`
-	Difficulty int64   `json:"difficulty"`
-	Nonce      int64   `json:"nonce"`
-	Validator  Address `json:"validator"`
-	Hash       Hash    `json:"hash"`
+	Height       int64     `json:"height"`
+	PrevHash     Hash      `json:"prev_hash"`
+	MerkleRoot   Hash      `json:"merkle_root"`
+	Timestamp    int64     `json:"timestamp"`
+	Difficulty   int64     `json:"difficulty"`
+	Nonce        int64     `json:"nonce"`
+	Validator    Address   `json:"validator"`
+	Hash         Hash      `json:"hash"`
 }
 
 func (b *Block) CalculateHash() Hash {
 	// Calculate merkle root of transactions
 	b.Header.MerkleRoot = b.calculateMerkleRoot()
-
+	
 	// Create header copy without hash for calculation
 	temp := b.Header
 	temp.Hash = Hash{}
@@ -126,12 +126,12 @@ func (b *Block) calculateMerkleRoot() Hash {
 	if len(b.Txs) == 0 {
 		return Hash{}
 	}
-
+	
 	var hashes []Hash
 	for _, tx := range b.Txs {
 		hashes = append(hashes, tx.Hash)
 	}
-
+	
 	// Simple merkle tree implementation
 	for len(hashes) > 1 {
 		var nextLevel []Hash
@@ -145,16 +145,16 @@ func (b *Block) calculateMerkleRoot() Hash {
 		}
 		hashes = nextLevel
 	}
-
+	
 	return hashes[0]
 }
 
 // Account represents a user account
 type Account struct {
-	Address  Address `json:"address"`
-	Balance  int64   `json:"balance"`
-	Nonce    int64   `json:"nonce"`
-	CodeHash Hash    `json:"code_hash,omitempty"`
+	Address   Address `json:"address"`
+	Balance   int64   `json:"balance"`
+	Nonce     int64   `json:"nonce"`
+	CodeHash  Hash    `json:"code_hash,omitempty"`
 }
 
 // NodeInfo represents node information
@@ -182,7 +182,7 @@ const (
 	TxTypeTransfer    = "transfer"
 	TxTypePatchSubmit = "patch_submit"
 	TxTypeStake       = "stake"
-
+	
 	DefaultBlockTime     = 10 * time.Second
 	DefaultMaxBlockSize  = 1024 * 1024 // 1MB
 	DefaultMaxTxPerBlock = 1000

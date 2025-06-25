@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-06-25T10:21:58.818340+00:00",
+  "genesis_file": "genesis/genesis.json",
+  "verification_results": {
+    "Basic Structure": true,
+    "Chain Parameters": true,
+    "Validators": true,
+    "Initial Accounts": true,
+    "Staking Parameters": true,
+    "Network Connectivity": false,
+    "Genesis Block": false
+  },
+  "summary": {
+    "total_checks": 7,
+    "passed_checks": 5,
+    "failed_checks": 2
+  },
+  "genesis_summary": {
+    "chain_id": "agent-chain-mainnet",
+    "genesis_time": "2024-12-19T18:00:00Z",
+    "validator_count": 3,
+    "account_count": 5,
+    "genesis_hash": "3c438d86542ca5ad87587d59b6a9319ef30dbb951fe5d252751648d7775aba36"
+  }
+}

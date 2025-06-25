@@ -1,0 +1,11 @@
+{
+  "address": "0x0000000000000000000000005f0f0198f76302b1",
+  "pub_key": {
+    "type": "tendermint/PubKeyEd25519",
+    "value": "validator3_public_key_1750846669"
+  },
+  "priv_key": {
+    "type": "tendermint/PrivKeyEd25519",
+    "value": "validator3_private_key_1750846669"
+  }
+}

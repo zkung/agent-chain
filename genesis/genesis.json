@@ -1,0 +1,83 @@
+{
+  "genesis_time": "2024-12-19T18:00:00Z",
+  "chain_id": "agent-chain-mainnet",
+  "initial_height": "0",
+  "validators": [
+    {
+      "address": "0x98b3a22a5573635f95e240435f0f0198f76302af",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "validator1_public_key"
+      },
+      "power": "100",
+      "name": "Genesis Validator 1"
+    },
+    {
+      "address": "0xc187c05a5d00b1e5ef9df184bb21daa85efbf960",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "validator2_public_key"
+      },
+      "power": "80",
+      "name": "Genesis Validator 2"
+    },
+    {
+      "address": "0x1234567890123456789012345678901234567890",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "validator3_public_key"
+      },
+      "power": "60",
+      "name": "Genesis Validator 3"
+    }
+  ],
+  "app_state": {
+    "accounts": [
+      {
+        "address": "0x98b3a22a5573635f95e240435f0f0198f76302af",
+        "balance": "1000000000000000000000000",
+        "sequence": "0"
+      },
+      {
+        "address": "0xc187c05a5d00b1e5ef9df184bb21daa85efbf960",
+        "balance": "500000000000000000000000",
+        "sequence": "0"
+      },
+      {
+        "address": "0x0000000000000000000000000000000000000001",
+        "balance": "10000000000000000000000000",
+        "sequence": "0"
+      },
+      {
+        "address": "0x0000000000000000000000000000000000000002",
+        "balance": "5000000000000000000000000",
+        "sequence": "0"
+      },
+      {
+        "address": "0x0000000000000000000000000000000000000003",
+        "balance": "83500000000000000000000000",
+        "sequence": "0"
+      }
+    ],
+    "validators": [
+      {
+        "address": "0x98b3a22a5573635f95e240435f0f0198f76302af",
+        "stake": "10000000000000000000000",
+        "commission_rate": "0.05",
+        "status": "bonded"
+      },
+      {
+        "address": "0xc187c05a5d00b1e5ef9df184bb21daa85efbf960",
+        "stake": "8000000000000000000000",
+        "commission_rate": "0.05",
+        "status": "bonded"
+      },
+      {
+        "address": "0x1234567890123456789012345678901234567890",
+        "stake": "6000000000000000000000",
+        "commission_rate": "0.05",
+        "status": "bonded"
+      }
+    ]
+  }
+}

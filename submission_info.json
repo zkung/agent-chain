@@ -1,8 +1,0 @@
-{
-  "package_file": "agent-chain-patchset.tar.gz",
-  "code_hash": "f7bbd8c325574880d5b2c0b398c5fcbfedc580b44615aea8b044b8fcd965a87a",
-  "size_bytes": 23437202,
-  "created_at": "2025-06-25 16:00:11",
-  "spec_id": "SYS-BOOTSTRAP-DEVNET-001",
-  "ready_for_submission": true
-}
