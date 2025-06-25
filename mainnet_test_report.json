@@ -1,0 +1,69 @@
+{
+  "test_summary": {
+    "start_time": "2025-06-25T17:12:07.274793",
+    "end_time": "2025-06-25T17:13:06.911545",
+    "total_tests": 21,
+    "passed_tests": 19,
+    "success_rate": "90.5%",
+    "overall_status": "FAIL"
+  },
+  "detailed_results": {
+    "basic_functionality": {
+      "Network startup": {
+        "success": false,
+        "output": "",
+        "error": "Traceback (most recent call last):\n  File \"E:\\agent-chain-E\\simple_test.py\", line 123, in <module>\n    success = test_bootstrap()\n              ^^^^^^^^^^^^^^^^\n  File \"E:\\agent-chain-E\\simple_test.py"
+      },
+      "Wallet list": {
+        "success": true,
+        "output": "Name                 Address\n----                 -------\nalice                0x98b3a22a5573635f95e240435f0f0198f76302af\ntest                 0xc187c05a5d00b1e5ef9df184bb21daa85efbf960\n",
+        "error": ""
+      },
+      "Blockchain height": {
+        "success": true,
+        "output": "Height: 396\n",
+        "error": ""
+      },
+      "Account balance": {
+        "success": true,
+        "output": "Balance: 0\n",
+        "error": ""
+      }
+    },
+    "transaction_processing": {
+      "single_transaction": true,
+      "rapid_transactions": true,
+      "patchset_submission": true
+    },
+    "staking_system": {
+      "validator_staking": true,
+      "delegator_staking": true,
+      "reward_check": true,
+      "reward_claim": true,
+      "unstaking": true
+    },
+    "network_resilience": {
+      "network_connectivity": true,
+      "height_consistency": true,
+      "continuous_operation": true
+    },
+    "performance_metrics": {
+      "memory_usage": true,
+      "response_time": true,
+      "disk_usage": true
+    },
+    "security_features": {
+      "invalid_tx_rejection": true,
+      "account_creation": true,
+      "balance_protection": false
+    }
+  },
+  "mainnet_readiness": {
+    "basic_functionality": false,
+    "transaction_processing": true,
+    "staking_system": true,
+    "network_resilience": true,
+    "performance_metrics": true,
+    "security_features": false
+  }
+}

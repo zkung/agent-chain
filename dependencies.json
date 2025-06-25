@@ -1,0 +1,33 @@
+{
+  "go_version": "1.21+",
+  "dependencies": {
+    "github.com/libp2p/go-libp2p": "v0.32.2",
+    "github.com/libp2p/go-libp2p-kad-dht": "v0.25.2",
+    "github.com/multiformats/go-multiaddr": "v0.12.0",
+    "github.com/spf13/cobra": "v1.8.0",
+    "github.com/spf13/viper": "v1.17.0",
+    "golang.org/x/crypto": "v0.15.0",
+    "github.com/gorilla/mux": "v1.8.1",
+    "github.com/gorilla/websocket": "v1.5.1",
+    "gopkg.in/yaml.v3": "v3.0.1",
+    "github.com/sirupsen/logrus": "v1.9.3"
+  },
+  "system_requirements": {
+    "memory": "\u2264 1GB",
+    "disk": "\u2264 800MB",
+    "ports": [
+      "8545",
+      "8546",
+      "8547",
+      "9001",
+      "9002",
+      "9003"
+    ]
+  },
+  "supported_platforms": [
+    "linux",
+    "darwin",
+    "windows"
+  ],
+  "docker_support": true
+}

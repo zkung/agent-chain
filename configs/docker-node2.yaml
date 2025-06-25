@@ -1,0 +1,6 @@
+data_dir: "/app/data"
+p2p_port: 9002
+rpc_port: 8546
+is_validator: true
+boot_nodes:
+  - "/ip4/node1/tcp/9001"

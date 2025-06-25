@@ -1,0 +1,5 @@
+data_dir: "/app/data"
+p2p_port: 9001
+rpc_port: 8545
+is_validator: true
+boot_nodes: []

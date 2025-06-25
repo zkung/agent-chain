@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  node1:
+    build: .
+    container_name: agent-chain-node1
+    hostname: node1
+    ports:
+      - "8545:8545"
+      - "9001:9001"
+    volumes:
+      - node1_data:/app/data
+      - node1_logs:/app/logs
+      - ./configs/docker-node1.yaml:/app/configs/node1.yaml:ro
+    environment:
+      - NODE_NAME=node1
+      - P2P_PORT=9001
+      - RPC_PORT=8545
+    networks:
+      - agent-chain-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  node2:
+    build: .
+    container_name: agent-chain-node2
+    hostname: node2
+    ports:
+      - "8546:8546"
+      - "9002:9002"
+    volumes:
+      - node2_data:/app/data
+      - node2_logs:/app/logs
+      - ./configs/docker-node2.yaml:/app/configs/node2.yaml:ro
+    environment:
+      - NODE_NAME=node2
+      - P2P_PORT=9002
+      - RPC_PORT=8546
+    networks:
+      - agent-chain-network
+    restart: unless-stopped
+    depends_on:
+      node1:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8546/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    command: ["node", "--config", "/app/configs/node2.yaml"]
+
+  node3:
+    build: .
+    container_name: agent-chain-node3
+    hostname: node3
+    ports:
+      - "8547:8547"
+      - "9003:9003"
+    volumes:
+      - node3_data:/app/data
+      - node3_logs:/app/logs
+      - ./configs/docker-node3.yaml:/app/configs/node3.yaml:ro
+    environment:
+      - NODE_NAME=node3
+      - P2P_PORT=9003
+      - RPC_PORT=8547
+    networks:
+      - agent-chain-network
+    restart: unless-stopped
+    depends_on:
+      node1:
+        condition: service_healthy
+      node2:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8547/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    command: ["node", "--config", "/app/configs/node3.yaml"]
+
+  # Optional: Monitoring service
+  monitor:
+    image: alpine:3.18
+    container_name: agent-chain-monitor
+    volumes:
+      - ./scripts/monitor.sh:/monitor.sh:ro
+    networks:
+      - agent-chain-network
+    depends_on:
+      - node1
+      - node2
+      - node3
+    command: ["sh", "/monitor.sh"]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+networks:
+  agent-chain-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  node1_data:
+    driver: local
+  node1_logs:
+    driver: local
+  node2_data:
+    driver: local
+  node2_logs:
+    driver: local
+  node3_data:
+    driver: local
+  node3_logs:
+    driver: local

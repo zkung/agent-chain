@@ -1,0 +1,42 @@
+{
+  "staking_guide": {
+    "validator": {
+      "minimum_stake": 1000,
+      "expected_apy": "10%",
+      "additional_rewards": [
+        "block_rewards",
+        "transaction_fees"
+      ],
+      "requirements": [
+        "run_validator_node",
+        "maintain_uptime"
+      ],
+      "command": "./wallet.exe stake --amount 1000 --role validator"
+    },
+    "delegator": {
+      "minimum_stake": 100,
+      "expected_apy": "8%",
+      "additional_rewards": [],
+      "requirements": [
+        "none"
+      ],
+      "command": "./wallet.exe stake --amount 500 --role delegator"
+    },
+    "unstaking": {
+      "unbonding_period": "7 days",
+      "command": "./wallet.exe stake --unstake",
+      "note": "Tokens locked during unbonding period"
+    }
+  },
+  "reward_schedule": {
+    "distribution": "daily",
+    "calculation": "proportional_to_stake",
+    "validator_bonus": "block_rewards + transaction_fees"
+  },
+  "best_practices": [
+    "Start with delegator staking to learn the system",
+    "Ensure sufficient balance before validator staking",
+    "Monitor node uptime for validator rewards",
+    "Plan for unbonding period when unstaking"
+  ]
+}

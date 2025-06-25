@@ -1,0 +1,28 @@
+{
+  "id": "SYS-BOOTSTRAP-DEVNET-001",
+  "title": "One-Click DevNet & CLI Wallet",
+  "version": "0.1.0",
+  "difficulty": "medium",
+  "author": "O3",
+  "description": "提交一个脚本，可在任意 x86_64 / ARM64 Linux/macOS/Windows 上一键启动本地 3 节点区块链测试网，并自带 CLI 钱包实现基本交易 + 提交 PatchSet 功能。",
+  "input_format": {
+    "script": "bash / powershell / python，必须自包含，不依赖私有镜像",
+    "config": "YAML，可选链参数"
+  },
+  "output_format": {
+    "devnet_status": "stdout 日志，包含 3 节点启动成功标记",
+    "wallet_cmds": "send / receive / submit 等 CLI 命令执行结果"
+  },
+  "acceptance_criteria": [
+    "执行 ./bootstrap.sh (或 bootstrap.ps1) ≤ 5 分钟完成：拉镜像、生成密钥、起 3 节点。",
+    "CLI 支持 new|import|balance|send|receive|submit-patch，全部无误。",
+    "本地提交 PatchSet → 节点 0 打包区块 → 节点 1/2 同步高度一致。",
+    "脚本总依赖镜像大小 ≤ 800 MB；内存峰值 ≤ 1 GB。"
+  ],
+  "time_limit_ms": 420000,
+  "memory_limit_mb": 1024,
+  "reward": 6000,
+  "unlock_scheme": { "immediate": 0.4, "linear_days": 20 },
+  "tags": ["devnet", "wallet", "bootstrap"],
+  "child_chain_capable": false
+}

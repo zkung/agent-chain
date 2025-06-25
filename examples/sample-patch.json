@@ -1,0 +1,10 @@
+{
+  "id": "patch-001",
+  "problem_id": "SYS-BOOTSTRAP-DEVNET-001",
+  "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello, Agent Chain!\")\n}",
+  "language": "go",
+  "files": {
+    "main.go": "package main\n\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello, Agent Chain!\")\n}",
+    "README.md": "# Sample Patch\n\nThis is a sample patch submission for Agent Chain."
+  }
+}

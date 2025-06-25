@@ -1,0 +1,63 @@
+{
+  "test_summary": {
+    "start_time": "2025-06-25T17:22:14.205039",
+    "end_time": "2025-06-25T17:23:47.205677",
+    "total_tests": 18,
+    "passed_tests": 17,
+    "success_rate": "94.4%",
+    "overall_status": "FAIL"
+  },
+  "detailed_results": {
+    "basic_functionality_fixed": {
+      "Network status check": {
+        "success": false,
+        "output": "",
+        "error": "Traceback (most recent call last):\n  File \"E:\\agent-chain-E\\network_status_check.py\", line 79, in <module>\n    success = check_network_status()\n              ^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\agent-ch"
+      },
+      "Wallet list": {
+        "success": true,
+        "output": "Name                 Address\n----                 -------\nalice                0x98b3a22a5573635f95e240435f0f0198f76302af\ntest                 0xc187c05a5d00b1e5ef9df184bb21daa85efbf960\ntest_security ",
+        "error": ""
+      },
+      "Blockchain height": {
+        "success": true,
+        "output": "Height: 457\n",
+        "error": ""
+      },
+      "Account balance": {
+        "success": true,
+        "output": "Balance: 0\n",
+        "error": ""
+      }
+    },
+    "security_features_fixed": {
+      "invalid_address_rejection": true,
+      "account_creation": true,
+      "balance_protection": true,
+      "zero_amount_rejection": true
+    },
+    "performance_stress": {
+      "rapid_execution": true,
+      "execution_time": true,
+      "memory_stability": true
+    },
+    "wallet_comprehensive": {
+      "list_accounts": true,
+      "check_height": true,
+      "check_balance": true,
+      "check_claimable": true,
+      "receive_address": true
+    },
+    "network_stability": {
+      "height_increasing": true,
+      "network_responsiveness": true
+    }
+  },
+  "mainnet_readiness": {
+    "basic_functionality": false,
+    "security_features": true,
+    "performance_stress": true,
+    "wallet_comprehensive": true,
+    "network_stability": true
+  }
+}
