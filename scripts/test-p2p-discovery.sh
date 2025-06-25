@@ -74,47 +74,68 @@ build_project() {
 start_test_node() {
     local node_id="$1"
     local is_bootstrap="$2"
+    local bootstrap_node_id="$3"
     local p2p_port=$((BASE_P2P_PORT + node_id))
     local rpc_port=$((BASE_RPC_PORT + node_id))
     local data_dir="$PROJECT_ROOT/test-node-$node_id"
-    
+
     # Create data directory
     mkdir -p "$data_dir"
-    
-    # Create node config
-    cat > "$data_dir/config.yaml" << EOF
+
+    # Create node config with proper YAML format
+    if [[ "$is_bootstrap" == "true" ]]; then
+        cat > "$data_dir/config.yaml" << EOF
 data_dir: "$data_dir"
-p2p_port: $p2p_port
-rpc_port: $rpc_port
-is_validator: true
-is_bootstrap: $is_bootstrap
-enable_discovery: true
+p2p:
+  port: $p2p_port
+  is_bootstrap: true
+  enable_discovery: true
+rpc:
+  port: $rpc_port
+validator:
+  enabled: true
 EOF
-    
+    else
+        # For non-bootstrap nodes, include bootstrap node address
+        local bootstrap_addr="/ip4/127.0.0.1/tcp/$BASE_P2P_PORT/p2p/$bootstrap_node_id"
+        cat > "$data_dir/config.yaml" << EOF
+data_dir: "$data_dir"
+p2p:
+  port: $p2p_port
+  is_bootstrap: false
+  enable_discovery: true
+  boot_nodes:
+    - "$bootstrap_addr"
+rpc:
+  port: $rpc_port
+validator:
+  enabled: true
+EOF
+    fi
+
     # Start node
     local log_file="$data_dir/node.log"
-    
-    if [[ "$is_bootstrap" == "true" ]]; then
-        log_p2p "Starting bootstrap node $node_id on ports P2P:$p2p_port RPC:$rpc_port"
-        "$NODE_BINARY" --config "$data_dir/config.yaml" --bootstrap --discovery > "$log_file" 2>&1 &
-    else
-        log_p2p "Starting regular node $node_id on ports P2P:$p2p_port RPC:$rpc_port"
-        "$NODE_BINARY" --config "$data_dir/config.yaml" --discovery > "$log_file" 2>&1 &
-    fi
-    
+    local err_file="$data_dir/node.err"
+
+    log_p2p "Starting node $node_id on ports P2P:$p2p_port RPC:$rpc_port (Bootstrap:$is_bootstrap)"
+    go run "$PROJECT_ROOT/cmd/node/main.go" --config "$data_dir/config.yaml" > "$log_file" 2> "$err_file" &
+
     local node_pid=$!
     NODE_PIDS+=("$node_pid")
-    
+
     # Wait for node to start
-    sleep 3
-    
+    sleep 5
+
     # Check if node is running
     if ! kill -0 "$node_pid" 2>/dev/null; then
         log_error "Node $node_id failed to start"
-        cat "$log_file"
+        echo "=== Log file ==="
+        cat "$log_file" 2>/dev/null || echo "No log file"
+        echo "=== Error file ==="
+        cat "$err_file" 2>/dev/null || echo "No error file"
         return 1
     fi
-    
+
     log_success "Node $node_id started successfully (PID: $node_pid)"
     return 0
 }
@@ -199,17 +220,39 @@ monitor_network() {
 # Test peer discovery
 test_peer_discovery() {
     log_p2p "Testing peer discovery mechanism..."
-    
+
     # Start bootstrap node first
-    start_test_node 0 true
-    sleep 5
-    
-    # Start regular nodes one by one
-    for i in $(seq 1 $((NUM_NODES - 1))); do
-        start_test_node "$i" false
-        sleep 2
+    start_test_node 0 true ""
+    sleep 10
+
+    # Get bootstrap node ID
+    local bootstrap_node_id=""
+    local attempts=0
+    while [[ $attempts -lt 12 ]]; do
+        local health_response=$(curl -sf "http://localhost:$BASE_RPC_PORT/health" 2>/dev/null || echo "")
+        if [[ -n "$health_response" ]]; then
+            bootstrap_node_id=$(echo "$health_response" | jq -r '.node_id // ""' 2>/dev/null || echo "")
+            if [[ -n "$bootstrap_node_id" && "$bootstrap_node_id" != "null" ]]; then
+                log_success "Bootstrap node ID: $bootstrap_node_id"
+                break
+            fi
+        fi
+        ((attempts++))
+        log_info "Waiting for bootstrap node... (attempt $attempts/12)"
+        sleep 5
     done
-    
+
+    if [[ -z "$bootstrap_node_id" ]]; then
+        log_error "Failed to get bootstrap node ID"
+        return 1
+    fi
+
+    # Start regular nodes one by one with bootstrap node ID
+    for i in $(seq 1 $((NUM_NODES - 1))); do
+        start_test_node "$i" false "$bootstrap_node_id"
+        sleep 3
+    done
+
     # Monitor network formation
     if monitor_network; then
         log_success "Peer discovery test passed!"

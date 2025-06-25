@@ -88,48 +88,77 @@ build_project() {
 start_node() {
     local node_id="$1"
     local is_bootstrap="$2"
+    local bootstrap_node_id="$3"
     local p2p_port=$((BASE_P2P_PORT + node_id))
     local rpc_port=$((BASE_RPC_PORT + node_id))
     local data_dir="$PROJECT_ROOT/data/node-$node_id"
-    
+
     # Create data directory
     mkdir -p "$data_dir"
-    
-    # Create node config
-    cat > "$data_dir/config.yaml" << EOF
+
+    # Create node config with proper YAML format
+    if [[ "$is_bootstrap" == "true" ]]; then
+        cat > "$data_dir/config.yaml" << EOF
 data_dir: "$data_dir"
-p2p_port: $p2p_port
-rpc_port: $rpc_port
-is_validator: true
-is_bootstrap: $is_bootstrap
-enable_discovery: true
+p2p:
+  port: $p2p_port
+  is_bootstrap: true
+  enable_discovery: true
+rpc:
+  port: $rpc_port
+validator:
+  enabled: true
 EOF
-    
+    else
+        # For non-bootstrap nodes, include bootstrap node address
+        local bootstrap_addr="/ip4/127.0.0.1/tcp/$BASE_P2P_PORT/p2p/$bootstrap_node_id"
+        cat > "$data_dir/config.yaml" << EOF
+data_dir: "$data_dir"
+p2p:
+  port: $p2p_port
+  is_bootstrap: false
+  enable_discovery: true
+  boot_nodes:
+    - "$bootstrap_addr"
+rpc:
+  port: $rpc_port
+validator:
+  enabled: true
+EOF
+    fi
+
     # Start node
     local log_file="$data_dir/node.log"
-    
-    if [[ "$is_bootstrap" == "true" ]]; then
-        log_p2p "Starting bootstrap node $node_id (P2P:$p2p_port, RPC:$rpc_port)"
-        nohup "$NODE_BINARY" --config "$data_dir/config.yaml" --bootstrap --discovery > "$log_file" 2>&1 &
-    else
-        log_p2p "Starting node $node_id (P2P:$p2p_port, RPC:$rpc_port)"
-        nohup "$NODE_BINARY" --config "$data_dir/config.yaml" --discovery > "$log_file" 2>&1 &
-    fi
-    
+    local err_file="$data_dir/node.err"
+
+    log_p2p "Starting node $node_id (P2P:$p2p_port, RPC:$rpc_port, Bootstrap:$is_bootstrap)"
+    nohup go run "$PROJECT_ROOT/cmd/node/main.go" --config "$data_dir/config.yaml" > "$log_file" 2> "$err_file" &
+
     local node_pid=$!
     echo "$node_pid" > "$data_dir/node.pid"
-    
+
     # Wait for node to start
-    sleep 3
-    
+    sleep 5
+
     # Check if node is running
     if ! kill -0 "$node_pid" 2>/dev/null; then
         log_error "Node $node_id failed to start"
-        cat "$log_file"
+        echo "=== Log file ==="
+        cat "$log_file" 2>/dev/null || echo "No log file"
+        echo "=== Error file ==="
+        cat "$err_file" 2>/dev/null || echo "No error file"
         return 1
     fi
-    
-    log_success "Node $node_id started (PID: $node_pid)"
+
+    # Wait a bit more and check health
+    sleep 3
+    local health_check=$(curl -sf "http://localhost:$rpc_port/health" 2>/dev/null || echo "failed")
+    if [[ "$health_check" == "failed" ]]; then
+        log_warning "Node $node_id health check failed, but process is running"
+    else
+        log_success "Node $node_id started and healthy (PID: $node_pid)"
+    fi
+
     return 0
 }
 
@@ -173,31 +202,53 @@ start_network() {
     log_info "  • P2P ports: $BASE_P2P_PORT-$((BASE_P2P_PORT + NUM_NODES - 1))"
     log_info "  • RPC ports: $BASE_RPC_PORT-$((BASE_RPC_PORT + NUM_NODES - 1))"
     echo
-    
+
     # Build project
     build_project
-    
+
     # Create data directory
     mkdir -p "$PROJECT_ROOT/data"
-    
+
     # Start bootstrap node first
-    if ! start_node 0 true; then
+    if ! start_node 0 true ""; then
         log_error "Failed to start bootstrap node"
         return 1
     fi
-    
-    # Wait for bootstrap node to be ready
-    sleep 5
-    
-    # Start other nodes
+
+    # Wait for bootstrap node to be ready and get its node ID
+    log_info "Waiting for bootstrap node to initialize..."
+    sleep 10
+
+    local bootstrap_node_id=""
+    local attempts=0
+    while [[ $attempts -lt 12 ]]; do
+        local health_response=$(curl -sf "http://localhost:$BASE_RPC_PORT/health" 2>/dev/null || echo "")
+        if [[ -n "$health_response" ]]; then
+            bootstrap_node_id=$(echo "$health_response" | jq -r '.node_id // ""' 2>/dev/null || echo "")
+            if [[ -n "$bootstrap_node_id" && "$bootstrap_node_id" != "null" ]]; then
+                log_success "Bootstrap node ID: $bootstrap_node_id"
+                break
+            fi
+        fi
+        ((attempts++))
+        log_info "Waiting for bootstrap node... (attempt $attempts/12)"
+        sleep 5
+    done
+
+    if [[ -z "$bootstrap_node_id" ]]; then
+        log_error "Failed to get bootstrap node ID"
+        return 1
+    fi
+
+    # Start other nodes with bootstrap node ID
     for i in $(seq 1 $((NUM_NODES - 1))); do
-        if ! start_node "$i" false; then
+        if ! start_node "$i" false "$bootstrap_node_id"; then
             log_error "Failed to start node $i"
             return 1
         fi
-        sleep 2
+        sleep 3
     done
-    
+
     echo
     log_success "🎉 P2P Network started successfully!"
     echo
@@ -222,34 +273,60 @@ start_network() {
 # Show network status
 show_status() {
     log_p2p "📊 Agent Chain P2P Network Status"
-    echo "=" * 40
-    
+    echo "=" * 50
+
     local active_nodes=0
+    local total_peers=0
+
     for i in $(seq 0 $((NUM_NODES - 1))); do
         local rpc_port=$((BASE_RPC_PORT + i))
         local p2p_port=$((BASE_P2P_PORT + i))
-        
+
         if check_node "$i"; then
             # Try to get more info from RPC
             local status="🟢 Running"
             local height="N/A"
             local peers="N/A"
-            
-            if curl -sf "http://localhost:$rpc_port/health" >/dev/null 2>&1; then
-                height=$(curl -sf "http://localhost:$rpc_port/status" 2>/dev/null | jq -r '.height // "N/A"' 2>/dev/null || echo "N/A")
-                peers=$(curl -sf "http://localhost:$rpc_port/peers" 2>/dev/null | jq -r '.peer_count // "N/A"' 2>/dev/null || echo "N/A")
+            local node_id="N/A"
+
+            local health_response=$(curl -sf "http://localhost:$rpc_port/health" 2>/dev/null || echo "")
+            if [[ -n "$health_response" ]]; then
+                height=$(echo "$health_response" | jq -r '.height // "N/A"' 2>/dev/null || echo "N/A")
+                peers=$(echo "$health_response" | jq -r '.peers // "N/A"' 2>/dev/null || echo "N/A")
+                node_id=$(echo "$health_response" | jq -r '.node_id // "N/A"' 2>/dev/null || echo "N/A")
+
+                # Add to total peer count
+                if [[ "$peers" != "N/A" && "$peers" =~ ^[0-9]+$ ]]; then
+                    total_peers=$((total_peers + peers))
+                fi
             fi
-            
-            log_info "Node $i: $status (Height: $height, Peers: $peers, RPC: $rpc_port)"
+
+            local node_type="Node"
+            if [[ $i -eq 0 ]]; then
+                node_type="Bootstrap"
+            fi
+
+            log_info "$node_type $i: $status"
+            log_info "  • Node ID: ${node_id:0:30}..."
+            log_info "  • Height: $height, Peers: $peers"
+            log_info "  • RPC: http://localhost:$rpc_port, P2P: $p2p_port"
+            echo
             ((active_nodes++))
         else
             log_warning "Node $i: 🔴 Stopped (RPC: $rpc_port, P2P: $p2p_port)"
         fi
     done
-    
-    echo
+
+    echo "=" * 50
     if [[ $active_nodes -gt 0 ]]; then
         log_success "Network status: $active_nodes/$NUM_NODES nodes active"
+        log_info "Total P2P connections: $total_peers"
+
+        if [[ $total_peers -gt 0 ]]; then
+            log_success "🎉 P2P discovery is working!"
+        else
+            log_warning "⚠️ No P2P connections detected"
+        fi
     else
         log_error "Network status: All nodes offline"
     fi
